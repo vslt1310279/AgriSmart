@@ -24,7 +24,36 @@ def _run_ifs(location: Optional[str], district: Optional[str]) -> dict[str, Any]
     from backend.api.services.ifs import recommend
     return recommend(location=location or None, district=district or None)
 
+##############
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware  # <--- Make sure this import is there
 
+app = FastAPI()
+
+# 1. Define who can talk to this API
+origins = [
+    "http://localhost",
+    "http://localhost:8501", # Default Streamlit port
+    "http://0.0.0.0:8000",   # Internal Render address
+    "https://agrismart.onrender.com", # Your actual Render URL
+    "*", # The "Wildcard" - allows everything (good for debugging)
+]
+
+# 2. Add the middleware RIGHT AFTER app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows GET, POST, etc.
+    allow_headers=["*"],  # Allows all headers
+)
+
+@app.get("/")
+async def root():
+    return {"status": "Backend is running!"}
+##############
+
+'''
 app = FastAPI(title="AgriSmart API", version="1.0.0")
 app.add_middleware(
     CORSMiddleware,
@@ -33,7 +62,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
+'''
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):
