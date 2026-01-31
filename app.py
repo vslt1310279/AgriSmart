@@ -17,7 +17,7 @@ import requests
 import streamlit as st
 
 
-BACKEND_URL = os.getenv("BACKEND_URL", "http://0.0.0.0:8000").rstrip("/")
+BACKEND_URL = os.getenv("BACKEND_URL", "https://agrismart-s50m.onrender.com/").rstrip("/")
 
 SOIL_TYPES = ["Alluvial", "Black Cotton", "Red Laterite", "Desert Sandy", "Mountain Forest", "Coastal Saline"]
 CROPS = ["Rice", "Wheat", "Maize", "Cotton", "Sugarcane", "Pulses", "Millets", "Vegetables"]
