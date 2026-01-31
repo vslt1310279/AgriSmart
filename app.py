@@ -1,646 +1,374 @@
 """
-AgriSmart - AI Integrated Farming System (IFS) Dashboard
-A Streamlit application for smallholder farmers to detect crop diseases,
-assess climate risk, and receive IFS recommendations.
+AgriSmart - Streamlit Frontend
+
+- Upload a crop leaf image + enter a location/district
+- Backend runs disease recognition + IFS recommender concurrently
+- View query history from Postgres/SQLite
 """
 
-import streamlit as st
-import pandas as pd
-import hashlib
-import random
-import time
+from __future__ import annotations
+
+import os
 from datetime import datetime
+from typing import Any
 
-# =====================================================
-# PAGE CONFIGURATION
-# =====================================================
-st.set_page_config(
-    page_title="AgriSmart - IFS Dashboard",
-    page_icon="🌾",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
-
-# =====================================================
-# CUSTOM CSS INJECTION
-# =====================================================
-st.markdown("""
-<style>
-    /* Global Styles */
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-    
-    * {
-        font-family: 'Inter', sans-serif;
-    }
-    
-    .main {
-        background-color: #222429;
-    }
-    
-    .stApp {
-        background-color: #222429;
-    }
-    
-    /* Sidebar Styling */
-    [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #1B5E20 0%, #2E7D32 100%);
-        padding: 1rem;
-    }
-    
-    [data-testid="stSidebar"] .stMarkdown {
-        color: white;
-    }
-    
-    [data-testid="stSidebar"] h1, 
-    [data-testid="stSidebar"] h2, 
-    [data-testid="stSidebar"] h3 {
-        color: white !important;
-    }
-    
-    /* Card Styling */
-    .card {
-        background: #FFFFFF;
-        border-radius: 16px;
-        padding: 1.5rem;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        margin-bottom: 1rem;
-        border: 1px solid rgba(46, 125, 50, 0.1);
-    }
-    
-    .card-header {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        margin-bottom: 1rem;
-        color: #2E7D32;
-        font-weight: 600;
-        font-size: 1.1rem;
-    }
-    
-    /* Upload Zone Styling */
-    .upload-zone {
-        background: linear-gradient(135deg, rgba(46, 125, 50, 0.08) 0%, rgba(76, 175, 80, 0.12) 100%);
-        border: 2px dashed #2E7D32;
-        border-radius: 20px;
-        padding: 3rem;
-        text-align: center;
-        margin: 1.5rem 0;
-        transition: all 0.3s ease;
-    }
-    
-    .upload-zone:hover {
-        background: linear-gradient(135deg, rgba(46, 125, 50, 0.12) 0%, rgba(76, 175, 80, 0.18) 100%);
-        border-color: #1B5E20;
-    }
-    
-    .upload-icon {
-        font-size: 3rem;
-        color: #2E7D32;
-        margin-bottom: 1rem;
-    }
-    
-    .upload-text {
-        color: #2E7D32;
-        font-weight: 500;
-        font-size: 1.1rem;
-    }
-    
-    .upload-subtext {
-        color: #666;
-        font-size: 0.9rem;
-        margin-top: 0.5rem;
-    }
-    
-    /* Status Badges */
-    .status-healthy {
-        background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
-        color: white;
-        padding: 0.5rem 1rem;
-        border-radius: 25px;
-        font-weight: 600;
-        display: inline-block;
-    }
-    
-    .status-warning {
-        background: linear-gradient(135deg, #FF9800 0%, #FFB74D 100%);
-        color: white;
-        padding: 0.5rem 1rem;
-        border-radius: 25px;
-        font-weight: 600;
-        display: inline-block;
-    }
-    
-    .status-danger {
-        background: linear-gradient(135deg, #f44336 0%, #e57373 100%);
-        color: white;
-        padding: 0.5rem 1rem;
-        border-radius: 25px;
-        font-weight: 600;
-        display: inline-block;
-    }
-    
-    /* Metric Cards */
-    .metric-card {
-        background: #FFFFFF;
-        border-radius: 12px;
-        padding: 1.2rem;
-        text-align: center;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        border-left: 4px solid #2E7D32;
-    }
-    
-    .metric-value {
-        font-size: 1.8rem;
-        font-weight: 700;
-        color: #2E7D32;
-    }
-    
-    .metric-label {
-        font-size: 0.85rem;
-        color: #666;
-        margin-top: 0.3rem;
-    }
-    
-    /* Buttons */
-    .stButton > button {
-        background: linear-gradient(135deg, #2E7D32 0%, #4CAF50 100%);
-        color: white;
-        border: none;
-        border-radius: 10px;
-        padding: 0.6rem 1.5rem;
-        font-weight: 500;
-        transition: all 0.3s ease;
-    }
-    
-    .stButton > button:hover {
-        background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 100%);
-        box-shadow: 0 4px 15px rgba(46, 125, 50, 0.4);
-    }
-    
-    /* Selectbox Styling */
-    .stSelectbox > div > div {
-        border-radius: 10px;
-        border-color: #E0E0E0;
-    }
-    
-    /* Tables */
-    .dataframe {
-        border-radius: 10px !important;
-        overflow: hidden;
-    }
-    
-    /* AI Insights */
-    .ai-insight {
-        background: linear-gradient(135deg, rgba(46, 125, 50, 0.05) 0%, rgba(76, 175, 80, 0.08) 100%);
-        border-left: 4px solid #2E7D32;
-        padding: 1rem;
-        border-radius: 0 10px 10px 0;
-        margin: 0.5rem 0;
-    }
-    
-    /* Blockchain Badge */
-    .blockchain-badge {
-        background: linear-gradient(135deg, #1565C0 0%, #42A5F5 100%);
-        color: white;
-        padding: 1rem;
-        border-radius: 12px;
-        font-family: 'Courier New', monospace;
-        font-size: 0.85rem;
-        word-break: break-all;
-    }
-    
-    /* Nav Items */
-    .nav-item {
-        background: rgba(255, 255, 255, 0.1);
-        padding: 0.8rem 1rem;
-        border-radius: 10px;
-        margin: 0.5rem 0;
-        color: white;
-        display: flex;
-        align-items: center;
-        gap: 0.8rem;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-    
-    .nav-item:hover {
-        background: rgba(255, 255, 255, 0.2);
-    }
-    
-    .nav-item.active {
-        background: rgba(255, 255, 255, 0.25);
-        border-left: 3px solid white;
-    }
-    
-    /* Header Title */
-    .main-title {
-        color: #1B5E20;
-        font-size: 2rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-    }
-    
-    .sub-title {
-        color: #666;
-        font-size: 1rem;
-    }
-    
-    /* Hide Streamlit Branding */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    
-    /* Confidence Meter */
-    .confidence-meter {
-        background: #E8F5E9;
-        border-radius: 10px;
-        padding: 1rem;
-        margin-top: 1rem;
-    }
-    
-    .confidence-bar {
-        background: linear-gradient(90deg, #2E7D32 0%, #4CAF50 100%);
-        height: 10px;
-        border-radius: 5px;
-    }
-</style>
-""", unsafe_allow_html=True)
+import pandas as pd
+import requests
+import streamlit as st
 
 
-# =====================================================
-# DATA DICTIONARIES
-# =====================================================
-
-IFS_RECOMMENDATIONS = {
-    "High Altitude Cold Desert": {
-        "livestock": "Sheep, goats, rabbits, yak",
-        "crops": "Millets, wheat, barley",
-        "systems": "Pastures, forestry",
-        "description": "Focus on hardy livestock and cold-resistant grains. Integration of pasture-based grazing with small grain cultivation provides year-round income stability."
-    },
-    "Arid/Desert": {
-        "livestock": "Camels, sheep, goats",
-        "crops": "Pearl millet, pulses, oilseeds",
-        "systems": "Animal husbandry focus",
-        "description": "Prioritize drought-tolerant crops and desert-adapted livestock. Water-efficient farming with emphasis on animal products for income diversification."
-    },
-    "Western/Central Himalayas": {
-        "livestock": "Poultry, sheep, goats, yak",
-        "crops": "Maize, wheat, rice",
-        "systems": "Horticulture integration",
-        "description": "Combine terrace farming with orchard cultivation. Livestock provides manure for organic farming while fruit trees offer additional income."
-    },
-    "Indo-Gangetic Plains": {
-        "livestock": "Dairy cattle (primary)",
-        "crops": "Rice, maize, wheat, mustard",
-        "systems": "Intensive cropping + Dairy",
-        "description": "Leverage fertile alluvial soil for intensive multi-crop rotation. Dairy integration maximizes farm productivity and ensures steady cash flow."
-    },
-    "Central/Southern Highlands": {
-        "livestock": "Dairy cattle, sheep, goat, poultry",
-        "crops": "Millets, pulses, cotton",
-        "systems": "Dryland farming systems",
-        "description": "Mixed farming approach with drought-resistant crops and diverse livestock. Cotton provides cash crop income while millets ensure food security."
-    },
-    "Western Ghats": {
-        "livestock": "Cattle, sheep, goats",
-        "crops": "Plantation crops, rice, pulses",
-        "systems": "Agroforestry + Plantation",
-        "description": "Integrate plantation crops (coffee, tea, spices) with food crops. Multi-tier cropping maximizes land use in high-rainfall areas."
-    },
-    "Delta/Coastal Plains": {
-        "livestock": "Fish, poultry (integrated)",
-        "crops": "Rice, pulses",
-        "systems": "Rice-fish integration",
-        "description": "Utilize waterlogged conditions for rice-fish farming. Aquaculture provides high-value protein while rice remains the staple crop."
-    }
-}
+BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000").rstrip("/")
 
 SOIL_TYPES = ["Alluvial", "Black Cotton", "Red Laterite", "Desert Sandy", "Mountain Forest", "Coastal Saline"]
 CROPS = ["Rice", "Wheat", "Maize", "Cotton", "Sugarcane", "Pulses", "Millets", "Vegetables"]
-STATUS_OPTIONS = ["All", "Active", "Needs Attention", "Critical"]
-
-DISEASE_RESULTS = [
-    {"status": "Healthy", "class": "status-healthy", "message": "Your crop appears healthy with no visible signs of disease or nutrient deficiency."},
-    {"status": "Early Blight (Risk)", "class": "status-warning", "message": "Detected early signs of fungal blight. Recommend immediate fungicide application and improved drainage."},
-    {"status": "Nitrogen Deficiency", "class": "status-danger", "message": "Yellowing patterns indicate nitrogen deficiency. Apply urea or organic nitrogen supplements immediately."}
-]
 
 
-# =====================================================
-# HELPER FUNCTIONS
-# =====================================================
+st.set_page_config(
+    page_title="AgriSmart",
+    page_icon="🌾",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
-def get_ifs_recommendation(region: str) -> dict:
-    """Returns IFS recommendation based on the agro-climatic region."""
-    return IFS_RECOMMENDATIONS.get(region, {
-        "livestock": "General livestock",
-        "crops": "Regional crops",
-        "systems": "Mixed farming",
-        "description": "Please select a specific region for tailored recommendations."
-    })
+st.markdown(
+    """
+<style>
+  .main { background-color: #F4F7F6; }
+  .stApp { background-color: #F4F7F6; }
+  [data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #1B5E20 0%, #2E7D32 100%);
+  }
+  .card {
+    background: #FFFFFF;
+    border-radius: 16px;
+    padding: 1.25rem;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(46, 125, 50, 0.10);
+  }
+  .card-title {
+    color: #2E7D32;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    font-size: 1.05rem;
+  }
+  .pill {
+    display: inline-block;
+    padding: 0.35rem 0.8rem;
+    border-radius: 999px;
+    color: white;
+    font-weight: 700;
+    font-size: 0.85rem;
+  }
+  .pill-ok { background: linear-gradient(135deg, #2E7D32 0%, #4CAF50 100%); }
+  .pill-warn { background: linear-gradient(135deg, #FF9800 0%, #FFB74D 100%); }
+  .pill-bad { background: linear-gradient(135deg, #f44336 0%, #e57373 100%); }
+  .muted { color: #666; font-size: 0.92rem; }
+  .small { color: #666; font-size: 0.85rem; }
+  .stButton > button {
+    background: linear-gradient(135deg, #2E7D32 0%, #4CAF50 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 0.6rem 1.2rem;
+    font-weight: 600;
+  }
+  .stButton > button:hover {
+    background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 100%);
+    box-shadow: 0 4px 15px rgba(46, 125, 50, 0.35);
+  }
+  #MainMenu {visibility: hidden;}
+  footer {visibility: hidden;}
+</style>
+""",
+    unsafe_allow_html=True,
+)
 
 
-def simulate_blockchain_hash(data: str) -> str:
-    """Generates SHA-256 hash for blockchain simulation."""
-    timestamp = datetime.now().isoformat()
-    combined_data = f"{data}|{timestamp}"
-    return hashlib.sha256(combined_data.encode()).hexdigest()
-
-
-def verify_data_on_chain(data: str) -> dict:
-    """Simulates blockchain verification for insurance proof."""
-    tx_hash = simulate_blockchain_hash(data)
-    return {
-        "network": "Polygon Testnet (Mumbai)",
-        "tx_hash": tx_hash,
-        "status": "Verified",
-        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC")
+def _api_post_analyze(
+    image_file,
+    *,
+    location: str | None,
+    district: str | None,
+    crop: str | None,
+    soil_type: str | None,
+) -> dict[str, Any]:
+    files = {
+        "file": (image_file.name, image_file.getvalue(), image_file.type),
     }
-
-
-def get_dummy_weather() -> dict:
-    """Returns simulated weather data."""
-    return {
-        "temperature": random.randint(25, 38),
-        "humidity": random.randint(40, 85),
-        "rainfall": random.randint(0, 50),
-        "wind_speed": random.randint(5, 25),
-        "conditions": random.choice(["Sunny", "Partly Cloudy", "Cloudy", "Light Rain"])
+    data = {
+        "location": location or "",
+        "district": district or "",
+        "crop": crop or "",
+        "soil_type": soil_type or "",
+        "top_k": "3",
     }
+    r = requests.post(f"{BACKEND_URL}/analyze", files=files, data=data, timeout=120)
+    r.raise_for_status()
+    return r.json()
 
 
-def get_nutrient_data() -> pd.DataFrame:
-    """Returns simulated soil nutrient data."""
-    return pd.DataFrame({
-        "Nutrient": ["Nitrogen (N)", "Phosphorus (P)", "Potassium (K)", "pH Level", "Organic Carbon", "Zinc"],
-        "Current Level": [random.randint(180, 280), random.randint(15, 45), random.randint(150, 250), 
-                         round(random.uniform(5.5, 8.0), 1), round(random.uniform(0.3, 0.8), 2), round(random.uniform(0.4, 1.2), 1)],
-        "Optimal Range": ["250-300 kg/ha", "25-35 kg/ha", "200-280 kg/ha", "6.0-7.5", "0.5-0.75%", "0.6-1.0 ppm"],
-        "Status": ["⚠️ Low", "✅ Optimal", "✅ Optimal", "✅ Optimal", "⚠️ Low", "✅ Optimal"]
-    })
+def _api_get_history(limit: int = 50) -> dict[str, Any]:
+    r = requests.get(f"{BACKEND_URL}/history", params={"limit": limit, "offset": 0}, timeout=30)
+    r.raise_for_status()
+    return r.json()
 
 
-def simulate_disease_detection():
-    """Simulates AI disease detection with random results."""
-    return random.choice(DISEASE_RESULTS), random.randint(89, 98)
+def _pill_for_conf(conf: float | None) -> tuple[str, str]:
+    if conf is None:
+        return "pill-warn", "Unknown"
+    if conf >= 0.85:
+        return "pill-ok", f"{conf:.1%}"
+    if conf >= 0.65:
+        return "pill-warn", f"{conf:.1%}"
+    return "pill-bad", f"{conf:.1%}"
 
 
-# =====================================================
-# SIDEBAR CONSTRUCTION
-# =====================================================
+def _backend_ok() -> tuple[bool, str]:
+    """Check if the backend API is reachable. Returns (ok, message)."""
+    try:
+        r = requests.get(f"{BACKEND_URL}/health", timeout=5)
+        if r.status_code == 200:
+            return True, "Connected"
+        return False, f"HTTP {r.status_code}"
+    except requests.exceptions.ConnectionError as e:
+        return False, "Connection refused — is the backend running?"
+    except requests.exceptions.Timeout:
+        return False, "Timeout — backend may be starting (wait 1–2 min)"
+    except Exception as e:
+        return False, str(e)
+
 
 with st.sidebar:
-    # App Logo & Name
-    st.markdown("""
-        <div style="text-align: center; padding: 1rem 0 2rem 0;">
-            <div style="font-size: 3rem;">🌾</div>
-            <h1 style="margin: 0.5rem 0 0 0; font-size: 1.5rem;">AgriSmart</h1>
-            <p style="color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-top: 0.3rem;">IFS Dashboard</p>
+    st.markdown(
+        """
+        <div style="text-align:center; padding: 1rem 0 1.25rem 0;">
+          <div style="font-size: 2.6rem;">🌾</div>
+          <div style="color:white; font-weight:800; font-size: 1.35rem;">AgriSmart</div>
+          <div style="color: rgba(255,255,255,0.75); font-size: 0.85rem;">AI Farming Assistant</div>
         </div>
-    """, unsafe_allow_html=True)
-    
-    # Navigation
-    st.markdown("""
-        <div class="nav-item active">
-            <span>🏠</span>
-            <span>Home</span>
-        </div>
-        <div class="nav-item">
-            <span>📊</span>
-            <span>Database</span>
-        </div>
-        <div class="nav-item">
-            <span>📋</span>
-            <span>Reports</span>
-        </div>
-        <div class="nav-item">
-            <span>⚙️</span>
-            <span>Settings</span>
-        </div>
-    """, unsafe_allow_html=True)
-    
-    st.markdown("<br><br>", unsafe_allow_html=True)
-    
-    # Weather Widget
-    st.markdown("### 🌤️ Local Weather")
-    weather = get_dummy_weather()
-    st.markdown(f"""
-        <div style="background: rgba(255,255,255,0.1); border-radius: 12px; padding: 1rem; margin-top: 0.5rem;">
-            <div style="font-size: 2rem; text-align: center;">{weather['temperature']}°C</div>
-            <div style="text-align: center; color: rgba(255,255,255,0.8);">{weather['conditions']}</div>
-            <div style="margin-top: 1rem; font-size: 0.8rem;">
-                <div>💧 Humidity: {weather['humidity']}%</div>
-                <div>🌧️ Rainfall: {weather['rainfall']}mm</div>
-                <div>💨 Wind: {weather['wind_speed']} km/h</div>
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
-    
-    st.markdown("<br>", unsafe_allow_html=True)
-    
-    # User Profile
-    st.markdown("""
-        <div style="position: fixed; bottom: 1rem; display: flex; align-items: center; gap: 0.8rem; padding: 0.8rem; background: rgba(255,255,255,0.1); border-radius: 12px;">
-            <div style="width: 40px; height: 40px; background: #4CAF50; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">👨‍🌾</div>
-            <div>
-                <div style="font-weight: 600;">Farmer User</div>
-                <div style="font-size: 0.75rem; color: rgba(255,255,255,0.7);">Premium Plan</div>
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
+        """,
+        unsafe_allow_html=True,
+    )
 
+    backend_ok, backend_msg = _backend_ok()
+    if backend_ok:
+        st.success("✅ Backend connected")
+    else:
+        st.error("❌ Backend not connected")
+        st.caption(f"**Reason:** {backend_msg}")
+        st.markdown(
+            "**To fix:**\n\n"
+            "1. Open a **new** Command Prompt or PowerShell window.\n\n"
+            "2. Go to the AgriSmart folder and run:\n"
+            "   ```\n   run_backend.bat\n   ```\n"
+            "   (Or double‑click **run_backend.bat** in File Explorer.)\n\n"
+            "3. Wait until you see: *Uvicorn running on http://0.0.0.0:8000*\n\n"
+            "4. Then click **Check again** below or refresh this page."
+        )
+        if st.button("🔄 Check again", use_container_width=True):
+            st.rerun()
 
-# =====================================================
-# MAIN CONTENT AREA
-# =====================================================
+    page = st.radio("Navigation", ["Analyze", "History"], horizontal=False)
 
-# Header
-st.markdown("""
-    <div style="margin-bottom: 2rem;">
-        <h1 class="main-title">🌱 Soil Health & Disease Analysis</h1>
-        <p class="sub-title">AI-powered insights for sustainable farming • Integrated Farming System Recommendations</p>
-    </div>
-""", unsafe_allow_html=True)
-
-# Filter Row
-st.markdown("### 🎛️ Analysis Filters")
-col1, col2, col3, col4, col5 = st.columns(5)
-
-with col1:
-    region = st.selectbox("🗺️ Region (Climatic Zone)", list(IFS_RECOMMENDATIONS.keys()))
-with col2:
-    soil_type = st.selectbox("🏔️ Soil Type", SOIL_TYPES)
-with col3:
-    crop = st.selectbox("🌿 Crop", CROPS)
-with col4:
-    date_range = st.selectbox("📅 Date Range", ["Last 7 Days", "Last 30 Days", "Last 90 Days", "This Year"])
-with col5:
-    status = st.selectbox("📊 Status", STATUS_OPTIONS)
-
-
-# Upload Zone
-st.markdown("<br>", unsafe_allow_html=True)
-st.markdown("""
-    <div class="upload-zone">
-        <div class="upload-icon">☁️📤</div>
-        <div class="upload-text">Drag & Drop or Click to Upload</div>
-        <div class="upload-subtext">Soil Report (PDF/CSV) or Crop Image (JPG/PNG)</div>
-    </div>
-""", unsafe_allow_html=True)
-
-uploaded_file = st.file_uploader("", type=["jpg", "jpeg", "png", "pdf", "csv"], label_visibility="collapsed")
-
-
-# =====================================================
-# RESULTS CONTAINER (Shows after upload)
-# =====================================================
-
-if uploaded_file is not None:
     st.markdown("---")
-    
-    # Scanning Animation
-    with st.spinner("🔬 AI is analyzing your upload..."):
-        time.sleep(2)  # Simulate processing
-    
-    st.success("✅ Analysis Complete!")
-    st.markdown("<br>", unsafe_allow_html=True)
-    
-    # Results Grid
-    col_left, col_right = st.columns([1.2, 1])
-    
-    with col_left:
-        # Uploaded Image Display (if image)
-        if uploaded_file.type.startswith('image'):
-            st.markdown("#### 📷 Uploaded Crop Image")
-            st.image(uploaded_file, use_container_width=True)
-            st.markdown("<br>", unsafe_allow_html=True)
-        
-        # Disease Detection Results
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        st.markdown('<div class="card-header">✨ AI Disease Detection Results</div>', unsafe_allow_html=True)
-        
-        disease_result, confidence = simulate_disease_detection()
-        
-        st.markdown(f"""
-            <div style="margin-bottom: 1rem;">
-                <span class="{disease_result['class']}">{disease_result['status']}</span>
-            </div>
-            <div class="ai-insight">
-                <strong>🤖 AI Insight:</strong> {disease_result['message']}
-            </div>
-            <div class="confidence-meter">
-                <div style="bacground:transparent;display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                    <span><strong>Confidence Score</strong></span>
-                    <span style="color: #7d6f2e; font-weight: 700;">{confidence}%</span>
-                </div>
-                <div style="background: #7d6f2e; border-radius: 5px; overflow: hidden;">
-                    <div class="confidence-bar" style="width: {confidence}%;"></div>
-                </div>
-            </div>
-        """, unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-        
-        # Nutrient Table
-        st.markdown("<br>", unsafe_allow_html=True)
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        st.markdown('<div class="card-header">🧪 Soil Nutrient Analysis</div>', unsafe_allow_html=True)
-        
-        nutrient_df = get_nutrient_data()
-        st.dataframe(nutrient_df, use_container_width=True, hide_index=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    with col_right:
-        # IFS Recommendations
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        st.markdown('<div class="card-header">🌾 IFS Recommendation</div>', unsafe_allow_html=True)
-        
-        ifs_rec = get_ifs_recommendation(region)
-        
-        st.markdown(f"""
-            <div style="margin-bottom: 1rem;">
-                <strong style="color: #2E7D32;">Region:</strong> {region}
-            </div>
-            <div class="ai-insight">
-                <p><strong>🐄 Recommended Livestock:</strong><br>{ifs_rec['livestock']}</p>
-            </div>
-            <div class="ai-insight">
-                <p><strong>🌾 Recommended Crops:</strong><br>{ifs_rec['crops']}</p>
-            </div>
-            <div class="ai-insight">
-                <p><strong>🔄 Farming Systems:</strong><br>{ifs_rec['systems']}</p>
-            </div>
-            <div style="padding: 1rem; border-radius: 10px; margin-top: 1rem;">
-                <strong>💡 Expert Advice:</strong><br>
-                {ifs_rec['description']}
-            </div>
-        """, unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-        
-        # Quick Action Buttons
-        st.markdown("<br>", unsafe_allow_html=True)
-        col_btn1, col_btn2 = st.columns(2)
-        with col_btn1:
-            st.button("📞 Contact Expert", use_container_width=True)
-        with col_btn2:
-            st.button("📥 Download Report", use_container_width=True)
-        
-        # Climate Risk Alert
-        st.markdown("<br>", unsafe_allow_html=True)
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        st.markdown('<div class="card-header">⚠️ Climate Risk Assessment</div>', unsafe_allow_html=True)
-        
-        weather = get_dummy_weather()
-        risk_level = "Low" if weather['humidity'] < 60 else ("Medium" if weather['humidity'] < 75 else "High")
-        risk_color = "#4CAF50" if risk_level == "Low" else ("#FF9800" if risk_level == "Medium" else "#f44336")
-        
-        st.markdown(f"""
-            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                <div style="background: {risk_color}; color: white; padding: 0.5rem 1rem; border-radius: 20px; font-weight: 600;">
-                    {risk_level} Risk
-                </div>
-                <span>Based on current weather conditions</span>
-            </div>
-            <div style="font-size: 0.9rem; color: #666;">
-                Current conditions: {weather['temperature']}°C, {weather['humidity']}% humidity, {weather['conditions']}
-            </div>
-        """, unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    # Blockchain Verification Section
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown("### 🔗 Blockchain Data Verification")
-    
-    # Prepare data for blockchain
-    verification_data = f"Region:{region}|Soil:{soil_type}|Crop:{crop}|Weather:{weather['conditions']}|Temp:{weather['temperature']}C"
-    blockchain_result = verify_data_on_chain(verification_data)
-    
-    st.markdown(f"""
-        <div class="blockchain-badge">
-            <div style="margin-bottom: 0.8rem;">
-                <span style="background: rgba(255,255,255,0.2); padding: 0.3rem 0.6rem; border-radius: 5px; margin-right: 0.5rem;">✓ {blockchain_result['status']}</span>
-                <span>on {blockchain_result['network']}</span>
-            </div>
-            <div style="margin-bottom: 0.5rem;">
-                <strong>Transaction Hash:</strong><br>
-                0x{blockchain_result['tx_hash'][:32]}...
-            </div>
-            <div style="font-size: 0.75rem; color: rgba(255,255,255,0.7);">
-                Timestamp: {blockchain_result['timestamp']} | Insurance-ready verification
-            </div>
-        </div>
-        <p style="font-size: 0.85rem; color: #666; margin-top: 1rem;">
-            🛡️ This verification proves to insurers that weather and soil conditions were accurately recorded at this timestamp.
-        </p>
-    """, unsafe_allow_html=True)
+    st.caption("Backend API")
+    st.code(BACKEND_URL, language="text")
 
 
-# =====================================================
-# FOOTER
-# =====================================================
-st.markdown("<br><br>", unsafe_allow_html=True)
-st.markdown("""
-    <div style="text-align: center; color: #999; font-size: 0.85rem; padding: 2rem 0; border-top: 1px solid #E0E0E0;">
-        <p>🌱 AgriSmart IFS Dashboard v1.0 | Supporting SDG 2: Zero Hunger</p>
-        <p>Built for Smallholder Farmers • AI-Powered • Blockchain Verified</p>
-    </div>
-""", unsafe_allow_html=True)
+if page == "Analyze":
+    st.markdown("## 🌿 Disease + IFS Analysis")
+    if not backend_ok:
+        st.warning(
+            "**Backend not connected.** Start the backend first (run **run_backend.bat** in the AgriSmart folder and wait until it says *Uvicorn running*), then refresh this page or click **Check again** in the sidebar."
+        )
+    st.markdown(
+        "<div class='muted'>Upload a leaf image and enter a location (or district). The backend runs both models concurrently and returns combined results.</div>",
+        unsafe_allow_html=True,
+    )
+
+    colA, colB, colC = st.columns([1.2, 1, 1])
+    with colA:
+        location = st.text_input("📍 Location (village/town/city)", placeholder="e.g., Chengalpattu")
+    with colB:
+        district = st.text_input("🗺️ District (optional, skips geocoding)", placeholder="e.g., Kanchipuram")
+    with colC:
+        crop = st.selectbox("🌾 Crop (optional)", [""] + CROPS, index=0)
+
+    colD, colE = st.columns([1, 2])
+    with colD:
+        soil_type = st.selectbox("🏔️ Soil Type (optional)", [""] + SOIL_TYPES, index=0)
+    with colE:
+        st.markdown(
+            "<div class='small'>Tip: If geocoding fails (no internet / uncertain match), fill the <b>District</b> field directly.</div>",
+            unsafe_allow_html=True,
+        )
+
+    st.markdown("### 📤 Upload leaf image")
+    uploaded = st.file_uploader("Upload JPG/PNG image", type=["jpg", "jpeg", "png"], accept_multiple_files=False)
+
+    can_run = uploaded is not None and ((location.strip() if location else "") or (district.strip() if district else ""))
+
+    if uploaded is not None:
+        st.image(uploaded, caption="Uploaded image", use_container_width=True)
+
+    run = st.button("Run analysis", disabled=not can_run, use_container_width=True)
+
+    if run:
+        with st.spinner("Running disease recognition + IFS recommender..."):
+            try:
+                result = _api_post_analyze(
+                    uploaded,
+                    location=location,
+                    district=district,
+                    crop=crop or None,
+                    soil_type=soil_type or None,
+                )
+            except requests.HTTPError as e:
+                st.error("Backend returned an error (500).")
+                err_text = str(e)
+                detail = err_text
+                if e.response is not None:
+                    try:
+                        body = e.response.json()
+                        d = body.get("detail", body.get("message", err_text))
+                        detail = d if isinstance(d, str) else str(d)
+                    except Exception:
+                        try:
+                            detail = (e.response.text or err_text).strip() or err_text
+                        except Exception:
+                            pass
+                st.markdown("**What went wrong:**")
+                st.code(detail)
+                st.caption("👉 Check the **backend terminal** (where uvicorn is running) for the full Python traceback.")
+                st.stop()
+            except requests.RequestException as e:
+                st.error("Backend request failed.")
+                err_text = str(e)
+                if "Connection refused" in err_text or "Failed to establish" in err_text or "Name or service not known" in err_text:
+                    st.markdown(
+                        "**The backend is not running or not reachable.**\n\n"
+                        "1. Open a **new** terminal in the AgriSmart folder.\n\n"
+                        "2. Start the backend (see **RUN.md** or README for terminal commands).\n\n"
+                        "3. Wait until you see *Uvicorn running*.\n\n"
+                        "4. Check the sidebar — it should show **Backend connected**. Then try **Run analysis** again."
+                    )
+                else:
+                    st.markdown("**Error details:** (check backend terminal for logs)")
+                st.code(err_text)
+                st.stop()
+
+        disease = result.get("disease") or {}
+        ifs = result.get("ifs") or {}
+
+        st.success("Analysis complete")
+
+        left, right = st.columns([1.05, 1])
+        with left:
+            st.markdown("<div class='card'><div class='card-title'>🌿 Disease Detection</div>", unsafe_allow_html=True)
+            cls = disease.get("class")
+            conf = disease.get("confidence")
+            # Backend may return float or string (e.g. "95.00%")
+            if isinstance(conf, str) and "%" in conf:
+                try:
+                    conf = float(conf.replace("%", "").strip()) / 100.0
+                except ValueError:
+                    conf = None
+            pill_class, pill_text = _pill_for_conf(conf if isinstance(conf, (int, float)) else None)
+            st.markdown(
+                f"<div style='display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;'>"
+                f"<span class='pill {pill_class}'>Confidence {pill_text}</span>"
+                f"<span style='font-weight:800; font-size: 1.05rem;'>{cls or 'Unknown'}</span>"
+                f"</div>",
+                unsafe_allow_html=True,
+            )
+
+            top = disease.get("top") or []
+            if isinstance(top, list) and top:
+                df_top = pd.DataFrame(
+                    [{"Class": t.get("class"), "Confidence": float(t.get("confidence", 0.0))} for t in top]
+                )
+                df_top["Confidence"] = df_top["Confidence"].map(lambda x: f"{x:.1%}")
+                st.dataframe(df_top, hide_index=True, use_container_width=True)
+
+            st.markdown(
+                f"<div class='small'>Logged as ID <b>{result.get('log_id')}</b> • "
+                f"{result.get('created_at') or ''}</div>",
+                unsafe_allow_html=True,
+            )
+            st.markdown("</div>", unsafe_allow_html=True)
+
+        with right:
+            st.markdown("<div class='card'><div class='card-title'>🌾 IFS Recommendations</div>", unsafe_allow_html=True)
+
+            matched = ifs.get("matched_district")
+            score = ifs.get("match_score")
+            st.markdown(
+                f"<div class='small'><b>Matched district:</b> {matched or '—'} "
+                f"({score if score is not None else '—'} / 100)</div>",
+                unsafe_allow_html=True,
+            )
+
+            recs = ifs.get("recommendations") or []
+            if isinstance(recs, list) and recs:
+                df = pd.DataFrame(recs)
+                st.dataframe(df, hide_index=True, use_container_width=True)
+            else:
+                st.info("No IFS recommendations returned.")
+
+            with st.expander("Raw IFS output"):
+                st.json(ifs)
+
+            st.markdown("</div>", unsafe_allow_html=True)
+
+
+if page == "History":
+    st.markdown("## 📚 History")
+    st.markdown(
+        "<div class='muted'>All analyses (inputs + outputs) are stored in the database. This page reads them from the backend.</div>",
+        unsafe_allow_html=True,
+    )
+
+    col1, col2 = st.columns([1, 3])
+    with col1:
+        limit = st.number_input("Rows", min_value=5, max_value=200, value=50, step=5)
+        refresh = st.button("Refresh", use_container_width=True)
+    with col2:
+        st.caption(f"Backend: {BACKEND_URL}")
+
+    try:
+        data = _api_get_history(int(limit))
+    except requests.RequestException as e:
+        st.error("Could not load history. Is the API running and connected to the DB?")
+        st.code(str(e))
+        st.stop()
+
+    items = data.get("items") or []
+    if not items:
+        st.info("No history yet. Run an analysis first.")
+        st.stop()
+
+    df = pd.DataFrame(items)
+    if "created_at" in df.columns:
+        # make it prettier (best-effort)
+        def _fmt(ts: str) -> str:
+            try:
+                return datetime.fromisoformat(ts.replace("Z", "+00:00")).strftime("%Y-%m-%d %H:%M:%S")
+            except Exception:
+                return ts
+
+        df["created_at"] = df["created_at"].map(_fmt)
+
+    st.dataframe(df, hide_index=True, use_container_width=True)
+
+    st.markdown("### 🔎 Inspect one record")
+    ids = [int(x["id"]) for x in items]
+    selected_id = st.number_input("Log ID", min_value=min(ids), max_value=max(ids) if ids else 1, value=ids[0] if ids else 1, step=1)
+    if st.button("Load record", use_container_width=True):
+        try:
+            r = requests.get(f"{BACKEND_URL}/history/{int(selected_id)}", timeout=30)
+            r.raise_for_status()
+            st.json(r.json())
+        except requests.RequestException as e:
+            st.error("Failed to load record.")
+            st.code(str(e))
+

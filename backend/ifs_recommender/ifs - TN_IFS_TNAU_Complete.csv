@@ -1,0 +1,78 @@
+District,Agro_Climatic_Zone,IFS_Model,Description
+Kanchipuram,North Eastern Zone,Crop + Dairy + Poultry,"Rice, pearl millet, groundnut and pulses cultivation integrated with dairy cows and poultry units providing diversified income and employment"
+Kanchipuram,North Eastern Zone,Crop + Goat + Poultry,"Rainfed crops including groundnut, millets and pulses with goat unit and desi poultry suited to grazing-based systems"
+Chengalpattu,North Eastern Zone,Crop + Dairy + Poultry,"Pearl millet, groundnut, pulses and rice cultivation integrated with dairy cattle and backyard poultry for risk management"
+Chengalpattu,North Eastern Zone,Crop + Goat + Poultry,"Rainfed crops including groundnut, millets and gingelly with goat rearing and poultry for supplementary income"
+Tiruvallur,North Eastern Zone,Crop + Dairy + Poultry,"Rainfed and irrigated cultivation of rice, groundnut and millets integrated with dairy cattle and backyard poultry"
+Tiruvallur,North Eastern Zone,Crop + Goat + Poultry,Crop production of cereals and pulses with goat rearing and poultry where grazing land is available
+Cuddalore,North Eastern Zone,Crop + Dairy + Poultry,"Pearl millet, groundnut, rice and gingelly cultivation with dairy cattle and poultry integration for stable returns"
+Cuddalore,North Eastern Zone,Crop + Goat + Poultry,"Mixed cropping system of millets, pulses and oilseeds with goats and local poultry"
+Villupuram,North Eastern Zone,Crop + Dairy + Poultry,"Mixed cropping of groundnut, millets and rice with dairy cattle and poultry for risk buffering"
+Villupuram,North Eastern Zone,Crop + Goat + Poultry,Crop-based system of cereals and pulses integrated with goat rearing and poultry
+Kallakurichi,North Eastern Zone,Crop + Dairy + Poultry,"Rainfed crops including groundnut, red gram and millets integrated with dairy cattle and poultry"
+Kallakurichi,North Eastern Zone,Crop + Goat + Poultry,Dryland crop production of pulses and millets combined with goat rearing and poultry
+Vellore,North Eastern Zone,Crop + Dairy + Poultry,"Cereal-pulse cropping systems of finger millet, groundnut and red gram supported by dairy cattle and poultry"
+Vellore,North Eastern Zone,Crop + Goat + Poultry,"Dryland crops of millets, groundnut and pulses integrated with goat rearing and poultry"
+Tirupathur,North Eastern Zone,Crop + Dairy + Poultry,"Groundnut, pearl millet and pulse cultivation with dairy cattle and poultry units for income stability"
+Tirupathur,North Eastern Zone,Crop + Goat + Poultry,Rainfed crops including groundnut and millets with goat rearing and poultry for diversified returns
+Ranipet,North Eastern Zone,Crop + Dairy + Poultry,"Crop cultivation of groundnut, millets and pulses integrated with dairy cattle and backyard poultry"
+Ranipet,North Eastern Zone,Crop + Goat + Poultry,Mixed cropping of cereals and oilseeds with goat rearing and poultry enterprises
+Tiruvannamalai,North Eastern Zone,Crop + Dairy + Poultry,"Groundnut, red gram, finger millet and gingelly cultivation with dairy cattle and poultry"
+Tiruvannamalai,North Eastern Zone,Crop + Goat + Poultry,Dryland farming of millets and pulses integrated with goat rearing and poultry
+Dharmapuri,North Western Zone,Rainfed Crop + Dairy + Poultry,"Rainfed cultivation of sorghum, millets, groundnut and pulses in 0.80 ha integrated with 3 milch cows and 6 layers of poultry for additional income"
+Dharmapuri,North Western Zone,Crop + Dairy + Goat + Mulberry,"Crop production of millets and groundnut in 1.0 ha with 2 milch animals, 6 goats and 0.25 ha mulberry cultivation for sericulture yielding net return of Rs. 28,580/year"
+Salem,North Western Zone,Rainfed Crop + Dairy + Poultry,"Rainfed cropping of sorghum, groundnut, cotton and pulses supported by 3 milch cows and 6 poultry layers"
+Salem,North Western Zone,Crop + Dairy + Goat + Mulberry,"Crop systems of millets and oilseeds in 1.0 ha integrated with 2 dairy cattle, 6 goats and 0.25 ha mulberry for fodder and sericulture"
+Namakkal,North Western Zone,Rainfed Crop + Dairy + Poultry,"Dryland crops of millets, pulses and groundnut combined with 3 milch cows and 6 layers of poultry"
+Namakkal,North Western Zone,Crop + Dairy + Goat + Mulberry,"Crop-livestock system with rainfed crops in 1.0 ha including 2 dairy animals, 6 goats and 0.25 ha mulberry cultivation"
+Erode,Western Zone,Crop + Fish + Poultry + Mushroom,"Rice-Gingelly-Maize and Rice-Soybean-Sunflower in 0.90 ha with polyculture fish in 0.10 ha, 50 layers and 5kg oyster mushroom production per day yielding Rs.88,700/ha/year with 300 man days employment"
+Erode,Western Zone,Crop + Fish + Goat + Mushroom,"Integration of 20 female + 1 male goat, polyculture fish (400 numbers) in 0.10 ha and improved cropping in 0.90 ha resulting in net return of Rs.1,31,118/ha"
+Coimbatore,Western Zone,Crop + Fish + Poultry + Mushroom,"Crop production in 0.90 ha wetland supported by fish culture in 0.10 ha, 50 layers of poultry and 5kg mushroom production daily for diversified income"
+Coimbatore,Western Zone,Crop + Fish + Goat + Mushroom,"Integrated system with goat rearing (20 female + 1 male), polyculture fish and cropping system for wetlands with mushroom cultivation"
+Tiruppur,Western Zone,Crop + Fish + Poultry + Mushroom,"Crop-fish-poultry-mushroom integration with 0.90 ha cropping, 0.10 ha fishery, 50 layers and 5kg mushroom per day for higher returns"
+Tiruppur,Western Zone,Crop + Fish + Goat + Mushroom,"Crop-fish-goat-mushroom integrated farming with 20 goats, fish culture and mushroom production units"
+Karur,Western Zone,Crop + Fish + Poultry + Mushroom,"Rainfed and irrigated crops in 0.90 ha integrated with fish culture in 0.10 ha, poultry layers and oyster mushroom production"
+Karur,Western Zone,Crop + Fish + Goat + Mushroom,"Crop systems with Tellicherry goat rearing, polyculture fish and mushroom production for stable income"
+Dindigul,Western Zone,Crop + Fish + Poultry + Mushroom,"Field crops cultivation with fish ponds in 0.10 ha, 50 poultry layers and mushroom production units"
+Dindigul,Western Zone,Crop + Fish + Goat + Mushroom,"Crop cultivation in 0.90 ha integrated with fish, 20 female + 1 male goats and mushroom cultivation"
+Theni,Western Zone,Crop + Fish + Poultry + Mushroom,"Crop systems in 0.90 ha integrated with fish culture, poultry and 5kg mushroom production per day"
+Theni,Western Zone,Crop + Fish + Goat + Mushroom,"Crop systems in wetlands integrated with fish, goat rearing and mushroom cultivation for multiple income streams"
+Tiruchirappalli,Cauvery Delta Zone,Rice + Dairy,"Integration of rice-based cropping with 2 milch cows resulting in net return of Rs.19,900 per year"
+Tiruchirappalli,Cauvery Delta Zone,Rice + Goat,"Rice-based farming system with 6 goats rearing fetching net return of Rs.25,400 annually"
+Tiruchirappalli,Cauvery Delta Zone,Rice + Fish + Duck,Rice paddies integrated with fish culture and duck rearing for diversified production
+Perambalur,Cauvery Delta Zone,Rice + Dairy,Rice-dominant cropping systems integrated with 2 milch cows for stable income
+Perambalur,Cauvery Delta Zone,Rice + Goat,Rice cultivation supported by 6 goats rearing with improved returns
+Perambalur,Cauvery Delta Zone,Rice + Fish + Duck,Rice fields combined with polyculture fish and duck farming system
+Pudukkottai,Cauvery Delta Zone,Rice + Dairy,Rice-based farming in wetlands integrated with 2 dairy cattle
+Pudukkottai,Cauvery Delta Zone,Rice + Goat,Rice-based cropping with 6 goats for additional income generation
+Pudukkottai,Cauvery Delta Zone,Rice + Fish + Duck,Integrated rice-fish-duck system in wetlands with complementary production
+Thanjavur,Cauvery Delta Zone,Rice + Dairy,Irrigated rice cultivation in delta zone integrated with 2 milch cows for dairy income
+Thanjavur,Cauvery Delta Zone,Rice + Goat,"Rice-based farming with 6 goats providing additional income of Rs.25,400/year"
+Thanjavur,Cauvery Delta Zone,Rice + Fish + Duck + Mushroom,"Rice paddies integrated with duck and fish rearing combined with mushroom cultivation resulting in net return of Rs.25,000 per year with enhanced employment"
+Nagapattinam,Cauvery Delta Zone,Rice + Dairy,Rice-based farming in coastal delta integrated with 2 dairy animals
+Nagapattinam,Cauvery Delta Zone,Rice + Goat,Rice-based cropping with 6 goats for risk management and income stability
+Nagapattinam,Cauvery Delta Zone,Rice + Fish + Duck,Integrated rice-fish-duck system utilizing water resources efficiently
+Mayiladuthurai,Cauvery Delta Zone,Rice + Dairy,Rice-dominant systems in delta with 2 milch cows integration
+Mayiladuthurai,Cauvery Delta Zone,Rice + Goat,Rice cultivation combined with 6 goats rearing for supplementary income
+Mayiladuthurai,Cauvery Delta Zone,Rice + Fish + Duck,Rice paddies with polyculture fish and duck farming for diversified output
+Tiruvarur,Cauvery Delta Zone,Rice + Dairy,Rice-dominant systems in wetlands integrated with 2 dairy cattle
+Tiruvarur,Cauvery Delta Zone,Rice + Goat,Rice cultivation supported by 6 goats rearing with better economic returns
+Tiruvarur,Cauvery Delta Zone,Rice + Fish + Duck,Rice fields combined with fish and duck farming utilizing paddy ecosystem
+Madurai,Southern Zone,Rice + Fish + Poultry,"Rice fields in Periyar-Vaigai Command Area integrated with fish culture and poultry fetching additional income of Rs.9,530 per hectare"
+Madurai,Southern Zone,Crop + Fruit Trees + Goat,Field crops in rainfed areas integrated with fruit tree cultivation and goat rearing for better returns in black clay soils
+Sivagangai,Southern Zone,Rice + Fish + Poultry,Rice-based system with fish and poultry enterprises for income diversification
+Sivagangai,Southern Zone,Crop + Fruit Trees + Goat,Dryland crops of millets and pulses combined with fruit orchards and goat rearing
+Ramanathapuram,Southern Zone,Rice + Fish + Poultry,Rice cultivation in command areas with fish culture and poultry integration
+Ramanathapuram,Southern Zone,Crop + Fruit Trees + Goat,Rainfed crops integrated with fruit orchards and goat rearing for sustainable income
+Virudhunagar,Southern Zone,Rice + Fish + Poultry,Rice-based system in irrigated areas with fish and poultry for additional returns
+Virudhunagar,Southern Zone,Crop + Fruit Trees + Goat,Crop production combined with fruit tree cultivation and goat rearing in rainfed conditions
+Tirunelveli,Southern Zone,Rice + Dairy + Fish,"Integration of milch cow, fish rearing and rice-based cropping system in wetlands fetching revenue of Rs.25,210 as net income"
+Tirunelveli,Southern Zone,Crop + Fruit Trees + Goat,Crop-horticulture-goat integration in rainfed black clay soils resulting in better economic returns
+Tenkasi,Southern Zone,Rice + Fish + Poultry,Rice fields in command areas combined with fish culture and poultry for diversified income
+Tenkasi,Southern Zone,Crop + Fruit Trees + Goat,Crop systems of millets and pulses integrated with fruit trees and goat rearing
+Thoothukudi,Southern Zone,Rice + Fish + Poultry,Rice fields combined with fish culture and poultry enterprises for income stability
+Thoothukudi,Southern Zone,Crop + Fruit Trees + Goat,Crop systems integrated with fruit tree orchards and goat rearing in coastal areas
+Kanniyakumari,High Rainfall Zone,Crop + Dairy + Poultry,"Rice, banana, tapioca and coconut cultivation integrated with dairy cattle and poultry in high rainfall coastal areas"
+Kanniyakumari,High Rainfall Zone,Crop + Fruit Trees + Coconut,"Horticultural crops including banana, jackfruit and mango with coconut, cashew and clove plantations for year-round income"
+Nilgiris,Hilly & High Altitude Zone,Crop + Dairy + Poultry + Broiler,"Horticultural crops including vegetables and flowers integrated with 2 milch cows, 6 layers and 9 broilers for higher income and regular employment in hilly terrain"
+Nilgiris,Hilly & High Altitude Zone,Crop + Livestock + Tea/Coffee,Tea and coffee plantation crops combined with dairy and poultry livestock enterprises for diversified income in high altitude areas
